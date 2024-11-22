@@ -1,0 +1,154 @@
+import numpy as np from copy import deepcopy 
+ 
+GOAL_STATE = [[1, 2, 3], [4, 5, 6], [7, 8, 0]] def manhattan_distance(state): 
+    distance = 0     for i in range(3):         for j in range(3):             if state[i][j] != 0:  
+                x, y = divmod(state[i][j] - 1, 3)                 distance += abs(x - i) + abs(y - j)     return distance def find_blank(state):     for i in range(3):         for j in range(3):             if state[i][j] == 0: 
+                return i, j 
+ 
+def generate_neighbors(state):     neighbors = []     x, y = find_blank(state)     directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  
+ 
+    for dx, dy in directions: 
+        new_x, new_y = x + dx, y + dy         if 0 <= new_x < 3 and 0 <= new_y < 3: 
+            new_state = deepcopy(state) 
+            new_state[x][y], new_state[new_x][new_y] = new_state[new_x][new_y], new_state[x][y] 
+            neighbors.append(new_state)     return neighbors 
+ 
+def hill_climbing(initial_state):     current_state = initial_state     current_cost = manhattan_distance(current_state)     steps = [current_state] 
+ 
+    while current_cost != 0:  
+        neighbors = generate_neighbors(current_state) 
+        neighbor_costs = [(manhattan_distance(neighbor), neighbor) for neighbor in neighbors]         neighbor_costs.sort() 
+ 
+        best_cost, best_neighbor = neighbor_costs[0] 
+ 
+        if best_cost >= current_cost: 
+            break 
+ 
+        current_state, current_cost = best_neighbor, best_cost         steps.append(current_state) 
+ 
+    return steps, current_cost == 0 def print_state(state):     for row in state:         print(row)     print() 
+ 
+if __name__ == "__main__":     print("Enter 4 test cases for the 8 Puzzle problem.") 
+     
+    for case in range(1, 5): 
+        print(f"\nTest Case {case}:") 
+        print("Enter the 8-puzzle configuration as 9 space-separated integers:")         input_numbers = list(map(int, input().split())) 
+         
+        if len(input_numbers) != 9 or set(input_numbers) != set(range(9)):             print("Invalid input. Please provide exactly 9 integers from 0 to 8.") 
+            continue 
+         
+        initial_state = [input_numbers[i:i+3] for i in range(0, 9, 3)]         print("\nInitial State:")         print_state(initial_state) 
+         
+        steps, success = hill_climbing(initial_state) 
+         
+        print("\nSteps to Goal:")         for step in steps:             print_state(step) 
+         
+        if success: 
+            print("Goal State Reached!") 
+        else: 
+            print("Failed to reach Goal State. Local Maxima or Plateau encountered.") 
+ 
+
+<!DOCTYPE html>  
+<html>  
+<head>  
+<title>Eligibility Checker</title>  
+<script>  
+async function checkEligibility() {  const studentId = document.getElementById("studentId").value;  const response = await fetch("http://localhost:8080/eligibility", {  method: "POST",  headers: { "Content-Type": "application/json" },  body: JSON.stringify({ student_id: studentId })  
+});  
+const result = await response.json();  document.getElementById("result").innerText =  
+`Scholarship: ${result.scholarship}, Exam Permission: 
+${result.exam_permission}`;  
+}  
+</script>  
+</head>  
+<body>  
+<h1>Student Eligibility Checker</h1>  
+<label for="studentId">Student ID:</label>  
+<input type="text" id="studentId" />  
+<button onclick="checkEligibility()">Check</button>  
+<p id="result"></p>  
+</body>  
+</html> 
+
+
+
+ import numpy as np import pandas as pd 
+ 
+def get_probabilities():     print("Enter probabilities for the Bayesian Belief Network.") 
+    P_L = { 
+        "Healthy": float(input("P(L=Healthy): ")), 
+        "Unhealthy": float(input("P(L=Unhealthy): ")) 
+    } 
+    P_G = { 
+        "Yes": float(input("P(G=Yes): ")), 
+        "No": float(input("P(G=No): ")) 
+    } 
+    print("Enter conditional probabilities for P(D | L, G):")     P_D_given_L_G = {} 
+    for L in ["Healthy", "Unhealthy"]:         for G in ["Yes", "No"]: 
+            P_D_given_L_G[(L, G)] = { 
+                "Yes": float(input(f"P(D=Yes | L={L}, G={G}): ")), 
+                "No": float(input(f"P(D=No | L={L}, G={G}): ")) 
+            } 
+    print("Enter conditional probabilities for P(T | D):") 
+    P_T_given_D = { 
+        "Yes": { 
+            "Positive": float(input("P(T=Positive | D=Yes): ")), 
+            "Negative": float(input("P(T=Negative | D=Yes): ")) 
+        }, 
+        "No": { 
+            "Positive": float(input("P(T=Positive | D=No): ")), 
+            "Negative": float(input("P(T=Negative | D=No): ")) 
+        } 
+    } 
+     
+    return P_L, P_G, P_D_given_L_G, P_T_given_D 
+def monte_carlo_simulation(P_L, P_G, P_D_given_L_G, P_T_given_D, num_samples=10000, show_steps=False): 
+    simulation_data = []     count_T_positive_given_D_yes = 0     count_D_yes = 0 
+ 
+    for i in range(num_samples): 
+        L = "Healthy" if np.random.rand() < P_L["Healthy"] else "Unhealthy" 
+ 
+        G = "Yes" if np.random.rand() < P_G["Yes"] else "No" 
+ 
+        D_probs = P_D_given_L_G[(L, G)] 
+        D = "Yes" if np.random.rand() < D_probs["Yes"] else "No" 
+ 
+        T_probs = P_T_given_D[D] 
+        T = "Positive" if np.random.rand() < T_probs["Positive"] else "Negative" 
+ 
+        if D == "Yes": 
+            count_D_yes += 1             if T == "Positive": 
+                count_T_positive_given_D_yes += 1 
+ 
+        if i < 10 and show_steps:             simulation_data.append({ 
+                "Sample": i + 1, 
+                "Lifestyle (L)": L, 
+                "Genetics (G)": G, 
+                "Disease (D)": D, 
+                "Test Result (T)": T, 
+                "Count(D=Yes)": count_D_yes, 
+                "Count(T=Positive|D=Yes)": count_T_positive_given_D_yes, 
+            }) 
+    if show_steps:         df = pd.DataFrame(simulation_data) 
+        df = df[[ 
+            "Sample", "Lifestyle (L)", "Genetics (G)",  
+            "Disease (D)", "Test Result (T)",  
+            "Count(D=Yes)", "Count(T=Positive|D=Yes)" 
+        ]] 
+        print("Simulation Steps (First 10 Samples):")         print(df.to_string(index=False)) 
+ 
+    if count_D_yes == 0: 
+        return 0 
+    return count_T_positive_given_D_yes / count_D_yes def main():     print("=== Bayesian Belief Network Simulation ===") 
+     
+    P_L, P_G, P_D_given_L_G, P_T_given_D = get_probabilities() 
+     
+    num_samples = int(input("Enter the number of samples for the simulation: ")) 
+    show_steps = input("Show first 10 simulation steps? (yes/no): ").strip().lower() == "yes" 
+     
+    estimated_probability = monte_carlo_simulation(P_L, P_G, P_D_given_L_G, P_T_given_D, num_samples, show_steps)     print(f"\nEstimated P(T=Positive | D=Yes) with {num_samples} samples: {estimated_probability:.4f}") 
+ 
+if __name__ == "__main__": 
+    main() 
+
